@@ -1,26 +1,24 @@
-name: Frontend CI/CD Pipeline
+name: CI/CD Pipeline for HealthConnect Front
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '14'
-      - name: Install dependencies
-        run: npm install
-      - name: Build
-        run: npm run build
-      - name: Build and push Docker image
-        run: |
-          docker build -t your_dockerhub_username/healthconnect-frontend .
-          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-          docker push your_dockerhub_username/healthconnect-frontend
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    # - name: Deploy to server
+    #   run: |
+    #     ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "docker pull yourusername/healthconnect-frontend:latest && docker run -d -p 80:80 yourusername/healthconnect-frontend:latest"
+    #   env:
+    #     SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+    #   shell: bash
