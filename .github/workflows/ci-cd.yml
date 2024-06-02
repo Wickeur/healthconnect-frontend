@@ -4,42 +4,28 @@ on:
   push:
     branches:
       - main
-      - connectVPS
   pull_request:
     branches:
       - main
 
 jobs:
-  build-and-push:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
-
-    - name: Build Docker image
-      run: docker build -t healthconnect-front:${{ github.sha }} .
-
-    - name: Push Docker Image
-      run: docker push healthconnect-front:${{ github.sha }}
-
-  deploy-to-vps:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
-    - name: Deploy to VPS
+    - name: Deploy Frontend to VPS
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USERNAME }}
         password: ${{ secrets.VPS_PASSWORD }}
         script: |
-          docker pull healthconnect-front:${{ github.sha }}
-          docker stop web || true
-          docker rm web || true
-          docker run -d --name web -p 80:80 healthconnect-front:${{ github.sha }}
+          cd /var/www/HealthConnect/healthconnect-frontend
+          git pull
+          docker build -t healthconnect-frontend:${{ github.sha }} .
+          docker stop frontend || true
+          docker rm frontend || true
+          docker run -d --name frontend -p 3000:3000 healthconnect-frontend:${{ github.sha }}
