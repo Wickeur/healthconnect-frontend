@@ -4,21 +4,36 @@ on:
   push:
     branches:
       - main
+      - connectVPS
   pull_request:
     branches:
       - main
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    # - name: Deploy to server
-    #   run: |
-    #     ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "docker pull yourusername/healthconnect-frontend:latest && docker run -d -p 80:80 yourusername/healthconnect-frontend:latest"
-    #   env:
-    #     SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-    #   shell: bash
+    - name: Install Dependencies
+      run: npm install
+
+    - name: Build Docker image
+      run: docker build -t healthconnect-front:${{ github.sha }} .
+
+    - name: Push Docker Image
+      run: docker push healthconnect-front:${{ github.sha }}
+
+    - name: Deploy to VPS
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        password: ${{ secrets.VPS_PASSWORD }}
+        script: |
+          docker pull healthconnect-front:${{ github.sha }}
+          docker stop web || true
+          docker rm web || true
+          docker run -d --name web -p 80:80 healthconnect-front:${{ github.sha }}
