@@ -29,4 +29,4 @@ jobs:
           docker build -t healthconnect-frontend:${{ github.sha }} .
           docker stop frontend || true
           docker rm frontend || true
-          docker run -d --name frontend -p 3000:3000 healthconnect-frontend:${{ github.sha }}
+          docker run -d --name frontend -p 8080:80 healthconnect-frontend:${{ github.sha }}
