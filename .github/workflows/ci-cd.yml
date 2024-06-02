@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - connectVPS
   pull_request:
     branches:
       - main
