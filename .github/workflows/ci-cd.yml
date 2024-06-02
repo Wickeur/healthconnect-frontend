@@ -10,9 +10,8 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
+  build-and-push:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -23,9 +22,16 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
+    - name: Build Docker image
+      run: docker build -t healthconnect-front:${{ github.sha }} .
+
     - name: Push Docker Image
       run: docker push healthconnect-front:${{ github.sha }}
 
+  deploy-to-vps:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
     - name: Deploy to VPS
       uses: appleboy/ssh-action@master
       with:
